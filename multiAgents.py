@@ -119,10 +119,10 @@ class MultiAgentSearchAgent(Agent):
         self.depth = int(depth)
 
 class MinimaxAgent(MultiAgentSearchAgent):
-    """
-    Your minimax agent (question 2)
-    """
 
+    #Method for searching the best action for the active agent at current poing
+    #Executes the minValue and maxValue methods, to find the best action
+    #Chooses the action with the highest value
     def getAction(self, gameState):
         """
         Returns the minimax action from the current gameState using self.depth
@@ -141,8 +141,12 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 maxAction = a
         return maxAction        
 
+    #Method for searching the best action for the ghosts at current point
+    #Loops through all possible actions and calls maxValue for each one
+    #If there are more than one ghosts --> recursively calls minValue
     def minValue(self, gameState, currDepth, currAgent):
         if gameState.isWin() or gameState.isLose() or currDepth == self.depth:
+            #evaluates the current state if it is a terminal state or the depth is reached
             return self.evaluationFunction(gameState)
         actions = gameState.getLegalActions(currAgent)
         successors = []
@@ -150,28 +154,33 @@ class MinimaxAgent(MultiAgentSearchAgent):
             successors.append( gameState.generateSuccessor(currAgent, a) )
         agents = gameState.getNumAgents()
         if currAgent < agents - 1:
-            # There are still some ghosts to choose their moves, so increase agent index and call minValue again
+            #Increase index of the agent and call minValue again if there are still ghosts to play
             return min( [self.minValue(s, currDepth, currAgent + 1) for s in successors] )
         else:
-            # Depth is increased when it is MAX's turn
+            #Increased depth when it is MAX's turn
             return min( [self.maxValue(s, currDepth + 1) for s in successors] )
     
+    #Method for searching the best action for the pacman at current point
+    #Loops through all possible actions and calls minValue for each one
     def maxValue(self, gameState, currDepth):
         if gameState.isWin() or gameState.isLose() or currDepth == self.depth:
             return self.evaluationFunction(gameState)
         actions = gameState.getLegalActions(0)
         successors = []
         for a in actions:
+            #creates a successor for each action
             successors.append( gameState.generateSuccessor(0, a) )
         
-        # Agent with index == 1 (the first ghost) plays next
+        #Index==1 (first ghost) plays next
         return max( [self.minValue(s, currDepth, 1) for s in successors] )
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
-    Your minimax agent with alpha-beta pruning (question 3)
+      Your alphabeta agent (question 2)
     """
-
+    #Method for searching the best action for the active agent at current poing
+    #Executes the minValue and maxValue methods, to find the best action
+    #Chooses the action with the highest value
     def getAction(self, gameState):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
@@ -191,6 +200,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                 a = max( (a, currentResult) )
         return maxAction
 
+    #Method for searching the best action for the pacman at current point
+    #eliminates unnecessary calculations by using alpha-beta pruning
     def maxValue(self, gameState, currDepth, a, b):
         if gameState.isWin() or gameState.isLose() or currDepth == self.depth:
             return self.evaluationFunction(gameState)
@@ -205,6 +216,9 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             a = max( (a,maxValue) )
         return maxValue
 
+    #Method for searching the best action for the pacman at current point
+    #eliminates unnecessary calculations by using alpha-beta pruning
+    #elminates unnecessary branches of the tree, which are not influencing the game
     def minValue(self, gameState, currDepth, currAgent, a, b):
         if gameState.isWin() or gameState.isLose() or currDepth == self.depth:
             return self.evaluationFunction(gameState)
@@ -226,16 +240,12 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
-      Your expectimax agent (question 4)
+      Your expectimax agent (question 3)
     """
-
+    #Method for searching the best action for the active agent at current poing
+    #Executes the minValue and maxValue methods, to find the best action
+    #Chooses the action with the highest value
     def getAction(self, gameState):
-        """
-        Returns the expectimax action using self.depth and self.evaluationFunction
-
-        All ghosts should be modeled as choosing uniformly at random from their
-        legal moves.
-        """
         actions = gameState.getLegalActions(0)
         maxAction = 'Stop'
         maxResult = float('-inf')
@@ -249,6 +259,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
                 maxAction = a
         return maxAction
     
+    #returns the maximum value with using the average value of the successors
     def maxExpect(self, gameState, currDepth):
         if gameState.isWin() or gameState.isLose() or currDepth == self.depth:
             return self.evaluationFunction(gameState)
@@ -259,6 +270,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         # Agent with index == 1 (the first ghost) plays next
         return max( [self.chanceExpect(s, currDepth, 1) for s in successors] )
 
+    #Return the expected value of the successors (average)
     def chanceExpect(self, gameState, currDepth, currAgent):
         if gameState.isWin() or gameState.isLose() or currDepth == self.depth:
             return self.evaluationFunction(gameState)
