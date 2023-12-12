@@ -181,6 +181,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     #Method for searching the best action for the active agent at current poing
     #Executes the minValue and maxValue methods, to find the best action
     #Chooses the action with the highest value
+    #expects the opponent to play with the worst strategy
     def getAction(self, gameState):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
@@ -202,6 +203,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
     #Method for searching the best action for the pacman at current point
     #eliminates unnecessary calculations by using alpha-beta pruning
+    #by generating a successor
+    #calling minValue for the next ghost, if there is a next ghost
     def maxValue(self, gameState, currDepth, a, b):
         if gameState.isWin() or gameState.isLose() or currDepth == self.depth:
             return self.evaluationFunction(gameState)
@@ -211,14 +214,17 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             successor = gameState.generateSuccessor(0, action)
             # Agent with index == 1 (the first ghost) plays next
             maxValue = max( (maxValue, self.minValue(successor, currDepth, 1, a, b)) )
+            #returning maxValue not to calculate unnecessary branches
             if maxValue > b:
                 return maxValue
+            #updating alpha
             a = max( (a,maxValue) )
         return maxValue
 
     #Method for searching the best action for the pacman at current point
     #eliminates unnecessary calculations by using alpha-beta pruning
     #elminates unnecessary branches of the tree, which are not influencing the game
+    #by generating a successor
     def minValue(self, gameState, currDepth, currAgent, a, b):
         if gameState.isWin() or gameState.isLose() or currDepth == self.depth:
             return self.evaluationFunction(gameState)
@@ -229,12 +235,16 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             successor = gameState.generateSuccessor(currAgent, action)
             if currAgent < agents - 1:
                 # There are still some ghosts to choose their moves, so increase agent index and call minValue again
+                #calling minValue for the next ghost recursively
                 minValue = min( (minValue, self.minValue(successor, currDepth, currAgent + 1, a, b)) )
             else:
+                #calling minValue for the next ghost recursively
                 # Depth is increased when it is MAX's turn
                 minValue = min( (minValue, self.maxValue(successor, currDepth + 1, a, b)) )
+            #returning maxValue not to calculate unnecessary branches
             if minValue < a:
                 return minValue
+            #updating beta
             b = min( (b,minValue) )
         return minValue
 
@@ -253,10 +263,12 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             # MAX (agent index = 0) plays first
             successor = gameState.generateSuccessor(0,a)
             # Agent with index == 1 (the first ghost) plays next. Depth starts at 0.
+            #chanceexpect for each successor
             currentResult = self.chanceExpect(successor, 0, 1)
             if currentResult > maxResult:
                 maxResult = currentResult
                 maxAction = a
+        #highest value is returned
         return maxAction
     
     #returns the maximum value with using the average value of the successors
@@ -284,6 +296,12 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         else:
             # Depth is increased when it is MAX's turn
             return sum( [self.maxExpect(s, currDepth + 1 ) for s in successors ] )/len(successors)
+
+#ExpectiMax is better than alpha-beta pruning, because it is more efficient
+#Search space and complexity
+#Depht and Horizon effect
+#Influence of Randomness or Uncertainty
+#Evaluation Function and Heuristics
 
 def betterEvaluationFunction(currentGameState):
     """
